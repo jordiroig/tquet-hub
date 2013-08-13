@@ -63,7 +63,7 @@
 			$query = $this-> db ->get();
 			if($query -> num_rows() > 0)
 			{
-				return $queryt->row();
+				return $query->row();
 			}
 			else
 			{
@@ -107,9 +107,9 @@
 			}
 		}
 
-		/************** LOCALS **************/
+		/************** VENUES **************/
 		
-		function get_locals()
+		function get_venues()
 		{
 			$this -> db -> select('*');
 			$this -> db -> from('Locals');
@@ -125,12 +125,64 @@
 			}
 		}
 		
-		function get_local($id)
+		function get_venue($id)
 		{
 			$this -> db -> select('*');
 			$this -> db -> from('Locals');
 			$this -> db -> where('id_festival', $this->festival_id);
 			$this -> db -> where('id_local', $id);
+			$this -> db -> limit(1);
+			$query = $this-> db ->get();
+			if($query -> num_rows() > 0)
+			{
+				return $query->row();
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		function get_venue_screens($id)
+		{
+			$this -> db -> select('*');
+			$this -> db -> from('Sales');
+			$this -> db -> where('id_local', $id);
+			$query = $this -> db -> get();
+			if($query -> num_rows() > 0)
+			{
+				return $query->result_array();
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		/************** SCREENS **************/
+		
+		function get_screens()
+		{
+			$this -> db -> select('Sales.*');
+			$this -> db -> from('Sales');
+			$this -> db -> join('Locals', 'Sales.id_local = Locals.id_local');
+			$this -> db -> where('Locals.id_festival', $this->festival_id);
+			$query = $this -> db -> get();
+			if($query -> num_rows() > 0)
+			{
+				return $query->result_array();
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		function get_screen($id)
+		{
+			$this -> db -> select('*');
+			$this -> db -> from('Sales');
+			$this -> db -> where('id_sala', $id);
 			$this -> db -> limit(1);
 			$query = $this-> db ->get();
 			if($query -> num_rows() > 0)
