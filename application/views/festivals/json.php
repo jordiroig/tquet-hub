@@ -1,8 +1,6 @@
 <?php 
-$output = ""; 
-if (is_object($dto)) {
-	$output = $dto->toJSONString();
-}
-echo $output;
+
+	$this->output->set_header('Content-Type: application/json; charset=utf-8');
+	echo json_encode($data);
 
 ?>

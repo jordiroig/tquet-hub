@@ -40,7 +40,7 @@
 
 $route['default_controller'] = "rest";
 
-$route['festivals/(:any)']  = "festivals/get/$1";
+$route['festivals/(:any)']  = "festivals/index/$1";
 
 //$route['404_override'] = '';
 

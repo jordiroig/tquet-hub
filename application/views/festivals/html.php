@@ -1,7 +1,7 @@
 <?php 
 
 echo "<pre>\n";
-echo $dto;
+echo $data;
 echo "\n</pre>\n";
 
 ?>

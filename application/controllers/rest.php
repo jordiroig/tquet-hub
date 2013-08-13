@@ -26,12 +26,12 @@ abstract class Rest extends CI_Controller
 		// 15 minuts de validesa per a les peticions 
         $this->valid_date_range_in_seconds = 900;
     }
-	
+    
 	public function index()
     {            
 		// Obtenim el métode HTTP
         $this->method = request_method(); //GET
-
+        
         // Comprovem les credencials
         //$this->checkAuth($this->method);
 
