@@ -32,8 +32,7 @@ abstract class Rest extends CI_Controller
 		// Obtenim el métode HTTP
         $this->method = request_method(); //GET, POST, PUT, DELETE
         
-        // Comprovem les credencials
-        $this->checkAuth();
+        
 
         // Detectem el format sol·licitat
         $request_format = request_format(); //JSON, HTML
@@ -53,6 +52,9 @@ abstract class Rest extends CI_Controller
 		        $this->response(array('status' => false, 'error' => 'Format '.$request_format.' no suportat'), 405);
 	        }
         }
+        
+        // Comprovem les credencials
+        $this->checkAuth();
 
         $this->parameters = $this->input->get();
 
@@ -113,7 +115,7 @@ abstract class Rest extends CI_Controller
 			}
 			else //No hi ha funció per aquell format, escupim les dades
 			{
-				$output = $data;
+				$output = var_dump($data);
 			}
 		}
 		
