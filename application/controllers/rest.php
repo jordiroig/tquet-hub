@@ -9,38 +9,50 @@ abstract class Rest extends CI_Controller
     protected $format;
     
     protected $parameters;
-    protected $valid_date_range_in_seconds;
 	
 	// Format per defecte
-    protected $default_format;
+    protected $default_format = 'application/json';
 
 	// Formats suportats
-    protected $supported_formats = array();
+    protected $supported_formats  = array(
+    	'json' => 'application/json',
+        'html' => 'text/html'
+    );
+
 	
 	function __construct()
     {
         parent::__construct();
-        $this->load->helper('auth_helper');
-        $this->load->helper('http_helper');
-
-		// 15 minuts de validesa per a les peticions 
-        $this->valid_date_range_in_seconds = 900;
+		$this->load->helper('http_helper');
+        $this->load->model('festival', 'festival', true);
     }
     
 	public function index()
     {            
 		// Obtenim el métode HTTP
-        $this->method = request_method(); //GET
+        $this->method = request_method(); //GET, POST, PUT, DELETE
         
         // Comprovem les credencials
-        //$this->checkAuth($this->method);
+        $this->checkAuth();
 
         // Detectem el format sol·licitat
-        $request_format = request_format(); //JSON
+        $request_format = request_format(); //JSON, HTML
         
-        $this->format = detect_format($request_format, 
-                                      $this->supported_formats,
-                                      $this->default_format);    
+        if(in_array($request_format, $this->supported_formats))
+        {
+	        $this->format = $request_format;
+        }
+        else
+        {
+	        if(in_array($this->default_format, $this->supported_formats))
+	        {
+		        $this->format = $this->default_format;
+	        }
+	        else
+	        {
+		        $this->response(array('status' => false, 'error' => 'Format '.$request_format.' no suportat'), 405);
+	        }
+        }
 
         $this->parameters = $this->input->get();
 
@@ -48,76 +60,91 @@ abstract class Rest extends CI_Controller
             case 'get':
                 $this->get();
                 break;
-            default;
-                $error_code = "404";
-                $error_message = $error_code;
-                $error_message .= " Unsupported method: ";
-                $error_message .= $this->method;
-                show_error($error_message, $error_code);    
+            case 'put':
+            	$this->response(array('status' => false, 'error' => 'Metode '.$this->method.' ENCARA no suportat'), 405);
+            	break;
+            case 'post':
+	            $this->response(array('status' => false, 'error' => 'Metode '.$this->method.' ENCARA no suportat'), 405);
+            	break;
+            case 'delete':
+              	$this->response(array('status' => false, 'error' => 'Metode '.$this->method.' ENCARA no suportat'), 405);
+              	break;
+            default:
+	            $this->response(array('status' => false, 'error' => 'Metode '.$this->method.' no suportat'), 405);
                 break;
         }                
     }
     
     abstract protected function get();
-           
-    private function checkAuth($method) {
 
-        $auth = "";
-        if($this->input->server('HTTP_X_AUTHORIZATION'))
-        {
-            $auth = $this->input->server('HTTP_X_AUTHORIZATION');
-        }
-
-        $request_date = "";
-        if($this->input->server('HTTP_DATE'))
-        {
-            $request_date = $this->input->server('HTTP_DATE');
-        }
-
-        $query_string = "";
-        if($this->input->server('QUERY_STRING'))
-        {
-            $query_string = $this->input->server('QUERY_STRING');
-        }
-
-        if (empty($request_date)
-            || !$this->checkDate($request_date)) {
-            $error_code = "403";
-            $error_message = $error_code . " La data no és correcta";
-            show_error($error_message, $error_code, 'S\'ha produït un error');
-            exit;
-        }
-
-        if (empty($auth)
-            || !isAuthorized($auth, $request_date,
-                             $method, $query_string)) {
-            $error_code = "401";
-            $error_message = $error_code . " No autoritzat";
-            show_error($error_message, $error_code, 'S\'ha produït un error');
-            exit;
-        }
-    }
-
-    private function checkDate($request_date)
+    private function checkAuth() 
     {
-        if (!preg_match("/GMT/i", $request_date)
-            && !preg_match("/UTC/i", $request_date)
-            && !preg_match("/Z/i", $request_date))
-        {
-            $request_date .= " UTC";
-        }
-        $ts_req = strtotime($request_date);
-        $ts_server = (int)gmdate('U');
 
-        $valid_date_range = $this->valid_date_range_in_seconds;
-        if ( ($ts_req > $ts_server - $valid_date_range)
-             && ($ts_req < $ts_server + $valid_date_range) )
+		$username = $this->input->server('PHP_AUTH_USER');
+		$password = $this->input->server('PHP_AUTH_PW');
+
+        if (!$this->festival->login($username, $password)) 
         {
-            return true;
+            $this->response(array('status' => false, 'error' => 'No autoritzat'), 401);
+            exit;
         }
-        return false;
     }
-
+    
+    public function response($data = array(), $http_code = null)
+	{
+		//No hi ha dades i el codi és null
+		if (empty($data) && $http_code === null)
+		{
+			$http_code = 404;
+			$output = array('status' => false, 'error' => 'No hi ha dades');
+		}
+		//No hi ha dades, però tenim codi
+		else if (empty($data) && is_numeric($http_code))
+		{
+			$output = null;
+		}
+		else
+		{
+			$function = array_search($this->format,$this->supported_formats);
+			if (method_exists($this, 'to_'.$function))
+			{	
+				header('Content-Type: '.$this->format);
+				$output = $this->{'to_'.$function}($data);
+			}
+			else //No hi ha funció per aquell format, escupim les dades
+			{
+				$output = $data;
+			}
+		}
+		
+		header('HTTP/1.1: ' . $http_code);
+		header('Status: ' . $http_code);
+		
+		exit($output);
+	}
+	
+	public function to_json($data)
+	{
+		return json_encode($data);
+	}
+	
+	public function to_html($data)
+	{
+		$formated_data = 'json: <br /><br />'.json_encode($data).'<br /><br />';
+		$formated_data .= 'dades: <br />';	
+		$formated_data .= '<ul>';
+		foreach ($data as $key => $val) 
+		{
+			if($val == false)
+			{
+				$val = 'Error';
+			}
+			$formated_data .= '<li>['.$key.']: '.$val.'</li>';
+		}
+		$formated_data .= '</ul>';
+		return $formated_data;
+	}
+	
 }
 
 ?>

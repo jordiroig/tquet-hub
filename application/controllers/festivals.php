@@ -8,11 +8,6 @@ class Festivals extends Rest
     function __construct()
     {
         parent::__construct();
-        $this->default_format = 'application/json';
-        $this->supported_formats = array(
-            'json' => 'application/json',
-            'html' => 'text/html'
-        );
         $this->load->model('festival', 'festival', true);
     }
     
@@ -32,71 +27,53 @@ class Festivals extends Rest
 		$resource = $this->uri->rsegment(4);
 		$resource_id = $this->uri->rsegment(5);
 		$second_resource = $this->uri->rsegment(6);
-
-        foreach ($this->supported_formats as $format => $type) {
-            if ($this->format == $type) {
          
-				if($resource)
+		if($resource)
+		{
+			if($resource_id)
+			{
+				if($second_resource)
 				{
-					if($resource_id)
-					{
-						if($second_resource)
-						{
-							$call = substr("get_".$resource, 0, -1)."_".$second_resource;
-						}
-						else
-						{
-							$call = substr("get_".$resource, 0, -1);
-						}
-					}
-					else
-					{
-						$call = "get_".$resource;
-					}
-					
-					if(method_exists($this->festival, $call))
-					{
-						$view_data['data'] = $this->festival->{$call}($resource_id);	
-					}
-					else
-					{
-						$error_code = "404";
-				        $error_message = $error_code . " Aquest recurs no existeix";
-				        show_error($error_message, $error_code, 'S\'ha produït un error');
-					}						
+					$call = substr("get_".$resource, 0, -1)."_".$second_resource;
 				}
 				else
 				{
-					$view_data['data'] = $this->festival->get_info();
+					$call = substr("get_".$resource, 0, -1);
 				}
+			}
+			else
+			{
+				$call = "get_".$resource;
+			}
+			
+			if(method_exists($this->festival, $call))
+			{
+				$data_result = $this->festival->{$call}($resource_id);	
+			}
+			else
+			{
+				$this->response(array('status' => false, 'error' => 'Aquest recurs no existeix'), 404);
+			}						
+		}
+		else
+		{
+			$data_result = $this->festival->get_info();
+		}
 
-				
-				if($view_data['data'])
-				{
-					$output = $this->load->view('festivals/' . $format, $view_data, true);
-	                echo $output;
-	                exit;
-				}
-				else
-				{
-					$error_code = "404";
-			        $error_message = $error_code . " No hi ha dades";
-			        show_error($error_message, $error_code, 'S\'ha produït un error');
-				}
-            }
-        }
-
-        // If the requested format is not supported, then return a HTTP 404 code.
-        $error_code = "404";
-        $error_message = $error_code . " Format no soportat: " . $this->format;
-        show_error($error_message, $error_code, 'S\'ha produït un error');
+		
+		if($data_result)
+		{
+            $this->response($data_result, 200);
+		}
+		else
+		{
+			$this->response(array('status' => false, 'error' => 'No hi ha dades'), 404);
+		}
     }
     
     private function check_festival_id($id) {
         if (empty($id) || !$this->festival->check_festival()) {
-            $error_code = "400";
-            $error_message = $error_code . " Festival no vàlid";
-            show_error($error_message, $error_code, 'S\'ha produït un error');
+	        $this->response(array('status' => false, 'error' => 'Festival no valid'), 404);
             exit;
         }
     }

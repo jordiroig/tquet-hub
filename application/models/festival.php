@@ -194,6 +194,14 @@
 				return false;
 			}
 		}
+		
+		/************** FILMS **************/
+	
+		function get_films()
+		{
+			
+			
+		}
 	
 	}
 
