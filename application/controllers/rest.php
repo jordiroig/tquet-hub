@@ -31,8 +31,6 @@ abstract class Rest extends CI_Controller
     {            
 		// Obtenim el métode HTTP
         $this->method = request_method(); //GET, POST, PUT, DELETE
-        
-        
 
         // Detectem el format sol·licitat
         $request_format = request_format(); //JSON, HTML
@@ -54,7 +52,7 @@ abstract class Rest extends CI_Controller
         }
         
         // Comprovem les credencials
-        $this->checkAuth();
+        //$this->checkAuth();
 
         $this->parameters = $this->input->get();
 
