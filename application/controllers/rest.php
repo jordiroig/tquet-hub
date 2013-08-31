@@ -10,6 +10,9 @@ abstract class Rest extends CI_Controller
     
     protected $parameters;
 	
+	//Usuari que fa les peticions
+	protected $username;
+	
 	// Format per defecte
     protected $default_format = 'application/json';
 
@@ -18,7 +21,6 @@ abstract class Rest extends CI_Controller
     	'json' => 'application/json',
         'html' => 'text/html'
     );
-
 	
 	function __construct()
     {
@@ -28,7 +30,7 @@ abstract class Rest extends CI_Controller
     }
     
 	public function index()
-    {            
+    {
 		// Obtenim el métode HTTP
         $this->method = request_method(); //GET, POST, PUT, DELETE
 
@@ -52,7 +54,7 @@ abstract class Rest extends CI_Controller
         }
         
         // Comprovem les credencials
-        //$this->checkAuth();
+        $this->checkAuth();
 
         $this->parameters = $this->input->get();
 
@@ -79,11 +81,18 @@ abstract class Rest extends CI_Controller
 
     private function checkAuth() 
     {
+		if($this->input->server('PHP_AUTH_USER'))
+		{
+			$this->username = $this->input->server('PHP_AUTH_USER');
+			$password = $this->input->server('PHP_AUTH_PW');
+		}
+		else //hardcoded per devel
+		{
+			$this->username = 'superadmin@tquet.com';
+			$password = 'superadmin';
+		}
 
-		$username = $this->input->server('PHP_AUTH_USER');
-		$password = $this->input->server('PHP_AUTH_PW');
-
-        if (!$this->festival->login($username, $password)) 
+        if (!$this->festival->login($this->username, $password)) 
         {
             $this->response(array('status' => false, 'error' => 'No autoritzat'), 401);
             exit;
@@ -123,12 +132,12 @@ abstract class Rest extends CI_Controller
 		exit($output);
 	}
 	
-	public function to_json($data)
+	private function to_json($data)
 	{
 		return json_encode($data);
 	}
 	
-	public function to_html($data)
+	private function to_html($data)
 	{
 		$formated_data = 'json: <br /><br />'.json_encode($data).'<br /><br />';
 		$formated_data .= 'dades: <br />';	

@@ -3,22 +3,43 @@
 	Class Festival extends CI_Model
 	{
 		private $festival_id;
+		private $username;
 	
 		function __construct()
 		{
 			parent::__construct();
-			$festival_id = '';
 		}
 	
-	    function initialize($festival_id)
+	    function initialize($festival_id, $username)
 		{
-			$this->festival_id = $festival_id;		
+			$this->festival_id = $festival_id;
+			$this->username = $username;		
 		}
-	
+
 		function check_festival()
 		{
 			$this -> db -> select('*');
 			$this -> db -> from('Festivals');
+			$this -> db -> where('id_festival', $this->festival_id);
+			$this -> db -> limit(1);
+			
+			$query = $this -> db -> get();
+			
+			if($query -> num_rows() == 1)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		function check_festival_user()
+		{
+			$this -> db -> select('*');
+			$this -> db -> from('Usuaris');
+			$this -> db -> where('email', $this->username);
 			$this -> db -> where('id_festival', $this->festival_id);
 			$this -> db -> limit(1);
 			
@@ -75,7 +96,7 @@
 		
 		function get_users()
 		{
-			$this -> db -> select('*');
+			$this -> db -> select('id_usuari, nom, cognoms, email');
 			$this -> db -> from('Usuaris');
 			$this -> db -> where('id_festival', $this->festival_id);
 			$query = $this -> db -> get();
@@ -91,7 +112,7 @@
 		
 		function get_user($id)
 		{
-			$this -> db -> select('*');
+			$this -> db -> select('id_usuari, id_festival, nom, cognoms, email');
 			$this -> db -> from('Usuaris');
 			$this -> db -> where('id_festival', $this->festival_id);
 			$this -> db -> where('id_usuari', $id);

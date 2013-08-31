@@ -4,7 +4,6 @@ include_once(APPPATH."controllers/rest.php");
 
 class Festivals extends Rest 
 {
-
     function __construct()
     {
         parent::__construct();
@@ -13,12 +12,11 @@ class Festivals extends Rest
     
     protected function get() 
     {
-
         // Obtenim el paràmetre id
         $id = $this->uri->rsegment(3);
 
         // Inicialitzem el model
-        $this->festival->initialize($id);
+        $this->festival->initialize($id, $this->username);
 
         // Comprovem que el id és vàlid
         $this->check_festival_id($id);
@@ -59,7 +57,6 @@ class Festivals extends Rest
 		{
 			$data_result = $this->festival->get_info();
 		}
-
 		
 		if($data_result)
 		{
@@ -71,10 +68,19 @@ class Festivals extends Rest
 		}
     }
     
-    private function check_festival_id($id) {
+    private function check_festival_id($id)
+    {
         if (empty($id) || !$this->festival->check_festival()) {
 	        $this->response(array('status' => false, 'error' => 'Festival no valid'), 404);
             exit;
+        }
+        else
+        {
+        	if(!$this->festival->check_festival_user())
+        	{
+				$this->response(array('status' => false, 'error' => 'No autoritzat'), 403);
+				exit;
+        	}
         }
     }
     

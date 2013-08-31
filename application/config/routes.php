@@ -41,6 +41,7 @@
 $route['default_controller'] = "welcome";
 
 $route['festivals/(:any)']  = "festivals/index/$1";
+$route['users/(:any)']  = "users/index/$1";
 
 //$route['404_override'] = '';
 
