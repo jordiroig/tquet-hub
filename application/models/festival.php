@@ -132,9 +132,10 @@
 		
 		function get_venues()
 		{
-			$this -> db -> select('*');
-			$this -> db -> from('Locals');
+			$this -> db -> select('l.id_local, l.id_festival, l.nom, l.adreca, p.nom as poblacio');
+			$this -> db -> from('Locals l');
 			$this -> db -> where('id_festival', $this->festival_id);
+			$this -> db -> join('Poblacions p', 'l.id_poblacio = p.id_poblacio');
 			$query = $this -> db -> get();
 			if($query -> num_rows() > 0)
 			{
