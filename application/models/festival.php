@@ -220,8 +220,35 @@
 	
 		function get_films()
 		{
-			
-			
+			$this -> db -> select('*');
+			$this -> db -> from('Espectacles');
+			$this -> db -> where('id_festival', $this->festival_id);
+			$query = $this -> db -> get();
+			if($query -> num_rows() > 0)
+			{
+				return $query->result_array();
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		function get_film($id)
+		{
+			$this -> db -> select('*');
+			$this -> db -> from('Espectacles');
+			$this -> db -> where('id_espectacle', $id);
+			$this -> db -> limit(1);
+			$query = $this-> db ->get();
+			if($query -> num_rows() > 0)
+			{
+				return $query->row();
+			}
+			else
+			{
+				return false;
+			}
 		}
 	
 	}
