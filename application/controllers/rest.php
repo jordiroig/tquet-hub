@@ -56,8 +56,8 @@ abstract class Rest extends CI_Controller
         // Comprovem les credencials
         $this->checkAuth();
 
-        $this->parameters = $this->input->get();
-
+		$post_data = request_post();
+		
         switch($this->method) {
             case 'get':
                 $this->get();
@@ -66,7 +66,7 @@ abstract class Rest extends CI_Controller
             	$this->response(array('status' => false, 'error' => 'Metode '.$this->method.' ENCARA no suportat'), 405);
             	break;
             case 'post':
-	            $this->response(array('status' => false, 'error' => 'Metode '.$this->method.' ENCARA no suportat'), 405);
+	            $this->post($post_data);
             	break;
             case 'delete':
               	$this->response(array('status' => false, 'error' => 'Metode '.$this->method.' ENCARA no suportat'), 405);

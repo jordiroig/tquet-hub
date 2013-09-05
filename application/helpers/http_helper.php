@@ -23,4 +23,11 @@ function request_method()
     return 'get';
 }
 
+function request_post()
+{
+	$HTTPH =& get_instance();
+    $data = $HTTPH->input->post();
+	return $data;    
+}
+
 ?>

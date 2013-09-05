@@ -165,6 +165,12 @@
 			}
 		}
 		
+		function post_venues($post_data)
+		{
+			$post_data['id_festival'] = $this->festival_id;
+			return $this->db->insert('Locals', $post_data); 	
+		}
+		
 		function get_venue_screens($id)
 		{
 			$this -> db -> select('*');
