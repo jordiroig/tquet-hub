@@ -30,4 +30,13 @@ function request_post()
 	return $data;    
 }
 
+function request_put()
+{
+	parse_str(file_get_contents("php://input"),$post_vars);
+	return $post_vars;    
+}
+
+
+
+		
 ?>

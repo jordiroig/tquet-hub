@@ -31,7 +31,15 @@ class Users extends Rest
         }
         else
         {
-	        $this->response(array('status' => false, 'error' => 'Usuari no valid'), 404);
+        	if(isset($_GET['check']))
+        	{
+	        	$data_result = $this->user->check_user($_GET['check']);
+	        	
+        	}
+        	else
+        	{
+	        	$this->response(array('status' => false, 'error' => 'Usuari no valid'), 404);
+	        }
         }
         
 		if($data_result)
