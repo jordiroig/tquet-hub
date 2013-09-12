@@ -380,6 +380,51 @@
 		{
 			return $this->db->delete('Espectacles', array('id_espectacle' => $id)); 
 		}
+		
+		/************** SESSIONS **************/
+	
+		function get_sessions($search = null)
+		{
+			$this -> db -> select('s.id_sessio, l.nom as local, sl.nom as sala, e.nom as peli, s.nom, s.data, s.hora');
+			$this -> db -> from('Sessions s');
+			$this -> db -> join('Sales sl', 'sl.id_sala = s.id_sala');
+			$this -> db -> join('Locals l', 'l.id_local = sl.id_local');
+			$this -> db -> join('Espectacles e', 'e.id_espectacle = s.id_espectacle');
+			if($search)
+			{
+				$this->db->like('l.nom', $search);
+				$this->db->or_like('sl.nom', $search);
+				$this->db->or_like('e.nom', $search);
+				$this->db->or_like('s.nom', $search);
+			}
+			$query = $this -> db -> get();
+			if($query -> num_rows() > 0)
+			{
+				return $query->result_array();
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		function get_session($id)
+		{
+			$this -> db -> select('*');
+			$this -> db -> from('Sessions');
+			$this -> db -> where('id_sessio', $id);
+			$this -> db -> limit(1);
+			$query = $this-> db ->get();
+			if($query -> num_rows() > 0)
+			{
+				return $query->row();
+			}
+			else
+			{
+				return false;
+			}
+		}
+
 	
 	}
 
