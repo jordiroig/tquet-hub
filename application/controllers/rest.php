@@ -13,6 +13,9 @@ abstract class Rest extends CI_Controller
 	//Usuari que fa les peticions
 	protected $username;
 	
+	//Usuari és admin?
+	protected $isadmin;
+	
 	// Format per defecte
     protected $default_format = 'application/json';
 
@@ -62,14 +65,35 @@ abstract class Rest extends CI_Controller
                 break;
             case 'put':
             	$put_data = request_put();
-            	$this->put($put_data);
+            	if($this->isadmin == '1')
+            	{
+            		$this->put($put_data);
+            	}
+            	else
+            	{
+	            	$this->response(array('status' => false, 'error' => 'No autoritzat'), 401);
+            	}
             	break;
             case 'post':
 	            $post_data = request_post();
-	            $this->post($post_data);
+	            if($this->isadmin == '1')
+            	{
+	            	$this->post($post_data);
+	            }
+            	else
+            	{
+	            	$this->response(array('status' => false, 'error' => 'No autoritzat'), 401);
+            	}
             	break;
             case 'delete':
-              	$this->delete();
+	            if($this->isadmin == '1')
+            	{
+    	          	$this->delete();
+    	        }
+            	else
+            	{
+	            	$this->response(array('status' => false, 'error' => 'No autoritzat'), 401);
+            	}
               	break;
             default:
 	            $this->response(array('status' => false, 'error' => 'Metode '.$this->method.' no suportat'), 405);
@@ -84,17 +108,19 @@ abstract class Rest extends CI_Controller
 			$this->username = $this->input->server('PHP_AUTH_USER');
 			$password = $this->input->server('PHP_AUTH_PW');
 		}
-		else //hardcoded per devel
-		{
-			$this->username = 'superadmin@tquet.com';
-			$password = 'superadmin';
-		}
 
-        if (!$this->festival->login($this->username, $password)) 
+		$login = $this->festival->login($this->username, $password);
+
+        if (!$login) 
         {
             $this->response(array('status' => false, 'error' => 'No autoritzat'), 401);
             exit;
         }
+        else
+        {
+	        $this->isadmin = $login[0]['admin'];
+        }
+        
     }
     
     public function response($data = array(), $http_code = null)

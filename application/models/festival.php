@@ -57,7 +57,7 @@
 	
 		function login($usuari, $clau)
 		{
-			$this -> db -> select('id_usuari, id_festival, email, nom, cognoms, clau');
+			$this -> db -> select('id_usuari, id_festival, email, nom, cognoms, clau, admin');
 			$this -> db -> from('Usuaris');
 			$this -> db -> where('email', $usuari);
 			$this -> db -> where('clau', MD5($clau));
@@ -67,7 +67,7 @@
 			
 			if($query -> num_rows() == 1)
 			{
-				return $query->result();
+				return $query->result_array();
 			}
 			else
 			{
@@ -96,7 +96,7 @@
 		
 		function get_users($search = null)
 		{
-			$this -> db -> select('id_usuari, nom, cognoms, email');
+			$this -> db -> select('id_usuari, nom, cognoms, email, admin');
 			$this -> db -> from('Usuaris');
 			$this -> db -> where('id_festival', $this->festival_id);
 			if($search)
@@ -105,6 +105,7 @@
 				$this->db->or_like('cognoms', $search);
 				$this->db->or_like('email', $search);
 			}
+			$this -> db -> order_by('id_usuari');
 			$query = $this -> db -> get();
 			if($query -> num_rows() > 0)
 			{
@@ -118,7 +119,7 @@
 		
 		function get_user($id)
 		{
-			$this -> db -> select('id_usuari, id_festival, nom, cognoms, email');
+			$this -> db -> select('id_usuari, id_festival, nom, cognoms, email, admin');
 			$this -> db -> from('Usuaris');
 			$this -> db -> where('id_festival', $this->festival_id);
 			$this -> db -> where('id_usuari', $id);
@@ -174,6 +175,7 @@
 				$this->db->or_like('l.adreca', $search);
 				$this->db->or_like('p.nom', $search);
 			}
+			$this -> db -> order_by('l.id_local');
 			$query = $this -> db -> get();
 			if($query -> num_rows() > 0)
 			{
@@ -259,6 +261,7 @@
 				$this->db->or_like('s.localitats', $search);
 				$this->db->or_like('l.nom', $search);
 			}
+			$this -> db -> order_by('s.id_sala');
 			$query = $this -> db -> get();
 			if($query -> num_rows() > 0)
 			{
@@ -310,14 +313,84 @@
 		{
 			return $this->db->delete('Sales', array('id_sala' => $id)); 
 		}
-				
+
+		/************** SECTIONS **************/
+
+		function get_sections($search = null)
+		{
+			$this -> db -> select('*');
+			$this -> db -> from('Seccions');
+			$this -> db -> where('id_festival', $this->festival_id);
+			if($search)
+			{
+				$this->db->like('nom', $search);
+				$this->db->or_like('jurat', $search);
+				$this->db->or_like('premi', $search);
+			}
+			$this -> db -> order_by('id_seccio');
+			$query = $this -> db -> get();
+			if($query -> num_rows() > 0)
+			{
+				return $query->result_array();
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		function get_section($id)
+		{
+			$this -> db -> select('*');
+			$this -> db -> from('Seccions');
+			$this -> db -> where('id_seccio', $id);
+			$this -> db -> where('id_festival', $this->festival_id);
+			$this -> db -> limit(1);
+			$query = $this-> db ->get();
+			if($query -> num_rows() > 0)
+			{
+				return $query->row();
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		function post_section($post_data)
+		{
+			return $this->db->insert('Seccions', $post_data); 	
+		}
+		
+		function put_section($id, $post_data)
+		{
+			$this->db->where('id_seccio', $id);
+			$update = $this->db->update('Seccions', $post_data);
+			if($update)
+			{
+				return $id;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		function delete_section($id)
+		{
+			return $this->db->delete('Seccions', array('id_seccio' => $id)); 
+		}
+
+
 		/************** FILMS **************/
 	
 		function get_films($search = null)
 		{
-			$this -> db -> select('*');
+			$this -> db -> select('e.*, s.nom as seccio');
 			$this -> db -> from('Espectacles e');
+			$this -> db -> join('Seccions s', 's.id_seccio = e.id_seccio');
 			$this -> db -> where('e.id_festival', $this->festival_id);
+			
 			if($search)
 			{
 				$this->db->like('e.nom', $search);
@@ -328,7 +401,9 @@
 				$this->db->or_like('e.genere', $search);
 				$this->db->or_like('e.sinopsi', $search);
 				$this->db->or_like('e.nacionalitat', $search);
+				$this->db->or_like('s.nom', $search);
 			}
+			$this -> db -> order_by('e.id_espectacle');
 			$query = $this -> db -> get();
 			if($query -> num_rows() > 0)
 			{
@@ -342,9 +417,10 @@
 		
 		function get_film($id)
 		{
-			$this -> db -> select('*');
-			$this -> db -> from('Espectacles');
-			$this -> db -> where('id_espectacle', $id);
+			$this -> db -> select('e.*, s.nom as seccio');
+			$this -> db -> from('Espectacles e');
+			$this -> db -> where('e.id_espectacle', $id);
+			$this -> db -> join('Seccions s', 's.id_seccio = e.id_seccio');
 			$this -> db -> limit(1);
 			$query = $this-> db ->get();
 			if($query -> num_rows() > 0)
@@ -385,7 +461,7 @@
 	
 		function get_sessions($search = null)
 		{
-			$this -> db -> select('s.id_sessio, l.nom as local, sl.nom as sala, e.nom as peli, s.nom, s.data, s.hora');
+			$this -> db -> select('s.id_sessio, l.nom as local, sl.nom as sala, e.nom as peli, e.director, e.id_seccio, s.nom, s.data, s.hora');
 			$this -> db -> from('Sessions s');
 			$this -> db -> join('Sales sl', 'sl.id_sala = s.id_sala');
 			$this -> db -> join('Locals l', 'l.id_local = sl.id_local');
@@ -396,7 +472,10 @@
 				$this->db->or_like('sl.nom', $search);
 				$this->db->or_like('e.nom', $search);
 				$this->db->or_like('s.nom', $search);
+				$this->db->or_like('s.data', $search);
+				$this->db->or_like('s.hora', $search);
 			}
+			$this -> db -> order_by('id_sessio');
 			$query = $this -> db -> get();
 			if($query -> num_rows() > 0)
 			{
@@ -424,6 +503,31 @@
 				return false;
 			}
 		}
+		
+		function post_session($post_data)
+		{
+			return $this->db->insert('Sessions', $post_data); 	
+		}
+		
+		function put_session($id, $post_data)
+		{
+			$this->db->where('id_sessio', $id);
+			$update = $this->db->update('Sessions', $post_data);
+			if($update)
+			{
+				return $id;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		function delete_session($id)
+		{
+			return $this->db->delete('Sessions', array('id_sessio' => $id)); 
+		}
+
 
 	
 	}
