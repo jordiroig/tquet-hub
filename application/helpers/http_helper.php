@@ -8,7 +8,7 @@ function request_format()
     	return strtolower($HTTPH->input->server('HTTP_ACCEPT'));
 	}
 	
-	return 'text/html';
+	return 'application/json';
 }
 
 function request_method()

@@ -108,8 +108,15 @@ abstract class Rest extends CI_Controller
 			$this->username = $this->input->server('PHP_AUTH_USER');
 			$password = $this->input->server('PHP_AUTH_PW');
 		}
-
-		$login = $this->festival->login($this->username, $password);
+		
+		if($this->username && $password)
+		{
+			$login = $this->festival->login($this->username, $password);
+		}
+		else
+		{
+			$login = false;
+		}
 
         if (!$login) 
         {

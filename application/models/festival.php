@@ -60,7 +60,7 @@
 			$this -> db -> select('id_usuari, id_festival, email, nom, cognoms, clau, admin');
 			$this -> db -> from('Usuaris');
 			$this -> db -> where('email', $usuari);
-			$this -> db -> where('clau', MD5($clau));
+			$this -> db -> where('clau', $clau);
 			$this -> db -> limit(1);
 			
 			$query = $this -> db -> get();
@@ -337,6 +337,28 @@
 			{
 				return false;
 			}
+		}
+		
+		function get_section_sessions($id)
+		{
+			$this -> db -> select('s.id_sessio, l.nom as local, sl.nom as sala, e.nom as peli, e.director, e.id_seccio, s.nom, s.data, s.hora');
+			$this -> db -> from('Sessions s');
+			$this -> db -> join('Sales sl', 'sl.id_sala = s.id_sala');
+			$this -> db -> join('Locals l', 'l.id_local = sl.id_local');
+			$this -> db -> join('Espectacles e', 'e.id_espectacle = s.id_espectacle');
+			$this -> db -> join('Seccions se', 'se.id_seccio = e.id_seccio');
+			$this -> db -> where('se.id_seccio', $id);
+			$this -> db -> order_by('s.id_sessio');
+			$query = $this -> db -> get();
+			if($query -> num_rows() > 0)
+			{
+				return $query->result_array();
+			}
+			else
+			{
+				return false;
+			}
+			
 		}
 		
 		function get_section($id)
