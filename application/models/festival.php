@@ -488,6 +488,7 @@
 			$this -> db -> join('Sales sl', 'sl.id_sala = s.id_sala');
 			$this -> db -> join('Locals l', 'l.id_local = sl.id_local');
 			$this -> db -> join('Espectacles e', 'e.id_espectacle = s.id_espectacle');
+			$this -> db -> where('l.id_festival', $this->festival_id);
 			if($search)
 			{
 				$this->db->like('l.nom', $search);
